@@ -36,7 +36,7 @@ animate();
 function buildParts() {
   var parts = [];
     
-  var mat = new THREE.MeshNormalMaterial()
+  var mat = new THREE.MeshLambertMaterial()
   var base = new THREE.Object3D();
   var baseMesh = new THREE.Mesh (new THREE.BoxGeometry (40,10,20), mat);
   base.add (baseMesh);
@@ -138,6 +138,14 @@ function init() {
   scene.add(gridXZ);
   target();
 
+
+  var pointLight = new THREE.PointLight( 0xFFEE58, 8, 800 );
+  pointLight.position.set( -500, 500, 0 );
+  scene.add( pointLight );
+
+  var sphereSize = 1;
+  var pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
+  scene.add( pointLightHelper );
   
   
   
