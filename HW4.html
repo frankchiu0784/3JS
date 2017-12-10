@@ -98,10 +98,9 @@ function init() {
 
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
 	cameraGod = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
-	camera.position.y = 100;
 	cameraGod.position.y = 200;
 	cameraGod.lookAt(new THREE.Vector3(0,0,0));
-	
+	camera.position.set(0,0,0);
 
 	// scene
 	scene = new THREE.Scene();
@@ -143,6 +142,8 @@ function init() {
 			theObject.rotation.y = Math.PI;
 			car.add(theObject);
 			car.add(new THREE.BoxHelper(theObject));
+
+			car.add(camera);
 			scene.add(car);
 
 			//////// MATERIAL ADJUSTMENT for porsche ///////////////
@@ -173,8 +174,6 @@ function init() {
 
 	controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.enableKeys = false;
-	
-	camera.position.z = 200;
 
 	window.addEventListener('resize', onWindowResize, false);
 }
@@ -254,6 +253,7 @@ function animate() {
 	
 	car.position.copy(pos);
 	car.rotation.y = angle;
+	car.add(camera);
 
 	// update
 	keyboard.update();
