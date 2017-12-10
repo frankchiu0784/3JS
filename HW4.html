@@ -250,8 +250,11 @@ function animate() {
 	
 	vel.applyAxisAngle (new THREE.Vector3(0,1,0), angle);
 	pos.add (vel.clone().multiplyScalar(dt));
-	camera=car.localToWorld(new THREE.Vector3(-20,10,0));
+
+	camera3=car.localToWorld(new THREE.Vector3(-20,10,0));
+	camera.position.copy(camera3);
 	controls.target = car.position;
+	
 	car.position.copy(pos);
 	car.rotation.y = angle;
 	
