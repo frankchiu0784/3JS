@@ -47,7 +47,7 @@
 var camera, cameraGod, scene, renderer;
 var controls;
 var keyboard = new KeyboardState();
-var overlap = false;
+
 var cameraHUD, sceneHUD;
 
 //control the car
@@ -254,7 +254,7 @@ function animate() {
 	camera3=car.localToWorld(new THREE.Vector3(-20,10,0));
 	camera.position.copy(camera3);
 	controls.target = car.position;
-	
+
 	car.position.copy(pos);
 	car.rotation.y = angle;
 	
@@ -271,7 +271,7 @@ function render() {
   var HH = window.innerHeight;
 
   renderer.setScissorTest(true);
-  if (overlap) {
+
     renderer.setViewport(0, 0, WW / 2, HH);
     camera.aspect = WW / 2 / HH;
     camera.updateProjectionMatrix();
@@ -287,27 +287,7 @@ function render() {
     renderer.clear();
     renderer.render(scene, cameraGod);
     renderer.render(sceneHUD, cameraHUD);
-  } else {
-    renderer.setViewport(0, 0, WW,  HH);
-    camera.aspect = WW / HH;
-    camera.updateProjectionMatrix();
-    renderer.setScissor(0, 0, WW, HH);
-    renderer.clear();
-    renderer.render(scene, camera);
-    renderer.render(sceneHUD, cameraHUD);
-
-    renderer.setViewport((WW / 3)*2, 0, WW / 3, HH / 3);
-
-    cameraGod.aspect = (WW / 3 / HH)*2;
-    cameraGod.updateProjectionMatrix();
-    renderer.setScissor((WW / 3)*2, 0, WW / 3, HH / 3);
-
-    renderer.clear();
-    //		renderer.render(scene, camera);
-    renderer.render(sceneHUD, cameraHUD);
-    renderer.render(scene, cameraGod);
-
-  }
+  
   renderer.setScissorTest(false);
 }
 
