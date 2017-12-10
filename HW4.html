@@ -1,0 +1,305 @@
+﻿<!DOCTYPE html>
+
+<html>
+
+<head>
+
+
+<style>
+
+	body {
+		font-family: Monospace;
+		background-color: #000;
+		color: #fff;
+		margin: 0px;
+		overflow: hidden;
+	}
+
+	#info {
+		color: #fff;
+		position: absolute;
+		top: 10px;
+		width: 100%;
+		text-align: center;
+		z-index: 100;
+		display: block;
+	}
+</style>
+</head>
+
+<body> 
+
+<div id="info">
+	
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js">
+</script>
+
+<!--script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/DDSLoader.js"></script-->
+<script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/MTLLoader.js"></script>
+<script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/OBJLoader.js"></script>
+<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+
+<script>
+
+var camera, scene, renderer;
+var controls;
+var keyboard = new KeyboardState();
+var overlap = false;
+var cameraHUD, sceneHUD;
+
+//control the car
+var pos, vel, speed = 0;
+var angle = 0;
+var clock = new THREE.Clock();
+var car = new THREE.Object3D();
+
+// obstacles
+var obstacles = [];
+
+(function() {
+	Math.clamp = function(val,min,max){
+	
+		return Math.min(Math.max(val,min),max);
+	}
+})();
+
+init();
+animate();
+initHUD();
+function initHUD() {
+
+  sceneHUD = new THREE.Scene();
+  cameraHUD = new THREE.OrthographicCamera(-10.5, 10.5, 10.5, -10.5, -10, 10);
+  cameraHUD.position.z = 5;
+  sceneHUD.add(cameraHUD);
+
+  var lineGeometry = new THREE.Geometry();
+  lineGeometry.vertices.push(new THREE.Vector3(-10, -10, 0),
+    new THREE.Vector3(10, -10, 0),
+    new THREE.Vector3(10, 10, 0),
+    new THREE.Vector3(-10, 10, 0),
+    new THREE.Vector3(-10, -10, 0));
+  var line = new THREE.Line(lineGeometry,
+    new THREE.LineBasicMaterial({
+      color: 0xffffff
+    }));
+  sceneHUD.add(line);
+  
+
+}
+
+function init() {
+	initHUD();
+	container = document.createElement('div');
+	document.body.appendChild(container);
+
+	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
+	camera.position.y = 100;
+
+	// scene
+	scene = new THREE.Scene();
+
+	gridxz = new THREE.GridHelper(200, 20, 'red', 'white');
+	scene.add(gridxz);
+
+	var ambient = new THREE.AmbientLight(0x444444);
+	scene.add(ambient);
+
+	var directionalLight = new THREE.DirectionalLight(0xffffff);
+	directionalLight.position.set(0, 1, 1).normalize();
+	scene.add(directionalLight);
+
+	// model
+	var onProgress = function(xhr) {
+		if (xhr.lengthComputable) {
+			var percentComplete = xhr.loaded / xhr.total * 100;
+			console.log(Math.round(percentComplete, 2) + '% downloaded');
+		}
+	};
+
+	var onError = function(xhr) {};
+
+	//THREE.Loader.Handlers.add(/\.dds$/i, new THREE.DDSLoader());
+  
+	var myMtlLoader = new THREE.MTLLoader();
+	myMtlLoader.setPath('resources/');
+	myMtlLoader.load('ferrari-laferrari.mtl', function(materials) {
+
+		materials.preload();
+
+		var myObjLoader = new THREE.OBJLoader();
+		myObjLoader.setMaterials(materials);
+		myObjLoader.setPath('resources/');
+		myObjLoader.load('ferrari-laferrari.obj', function(object) {
+
+			var theObject = unitize(object, 20);
+			theObject.rotation.y = Math.PI;
+			car.add(theObject);
+			car.add(new THREE.BoxHelper(theObject));
+			scene.add(car);
+
+			//////// MATERIAL ADJUSTMENT for porsche ///////////////
+			// transparent window: double-side fix
+			object.traverse(
+				function(mesh) {
+					if (mesh instanceof THREE.Mesh) {
+						mesh.material.side = THREE.DoubleSide;
+					}
+				}
+			);
+		}, onProgress, onError);
+	});
+	
+	//control the car
+	pos = new THREE.Vector3();
+	vel = new THREE.Vector3();
+	
+	//set obstacles
+	
+	
+	//for renderer
+	renderer = new THREE.WebGLRenderer();
+ 	renderer.setSize(window.innerWidth, window.innerHeight);
+ 	renderer.setClearColor(0x888888);
+ 	renderer.autoClear = false;
+ 	document.body.appendChild(renderer.domElement);
+
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+	controls.enableKeys = false;
+	
+	camera.position.z = 200;
+
+	window.addEventListener('resize', onWindowResize, false);
+}
+
+////////////////////////////////////////
+// create an Object3D of the given object
+// so that it is centered at +Y axis
+// 
+function unitize(object, targetSize) {
+
+	// find bounding box of 'object'
+	var box3 = new THREE.Box3();
+	box3.setFromObject(object);
+	var size = new THREE.Vector3();
+	size.subVectors(box3.max, box3.min);
+	var center = new THREE.Vector3();
+	center.addVectors(box3.max, box3.min).multiplyScalar(0.5);
+
+	console.log('center: ' + center.x + ', ' + center.y + ', ' + center.z);
+	console.log('size: ' + size.x + ', ' + size.y + ', ' + size.z);
+
+	// uniform scaling according to objSize
+	var objSize = findMax(size);
+	var scaleSet = targetSize / objSize;
+
+	var theObject = new THREE.Object3D();
+	theObject.add(object);
+	object.scale.set(scaleSet, scaleSet, scaleSet);
+	object.position.set(-center.x * scaleSet, -center.y * scaleSet + size.y / 2 * scaleSet, -center.z * scaleSet);
+
+	return theObject;
+
+	// helper function
+	function findMax(v) {
+		if (v.x > v.y) {
+			return v.x > v.z ? v.x : v.z;
+		} else { // v.y > v.x
+			return v.y > v.z ? v.y : v.z;
+		}
+	}
+}
+
+function onWindowResize() {
+
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+
+	renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+
+	var dt = clock.getDelta();
+	
+	// control the car used keyboard
+	if ( keyboard.pressed("up") ) {
+		speed += 0.5; 
+    }
+    if ( keyboard.pressed("down") ) {
+		speed -= 0.5;
+    }
+    if ( keyboard.pressed("right") ) {
+		angle -= 0.03; 
+    }
+    if ( keyboard.pressed("left") ) {
+		angle += 0.03;
+    }
+    if (keyboard.down('space')) {
+    overlap = !overlap;
+  	}
+	
+	speed = Math.clamp (speed, 0.1, 20.0);		
+	vel = new THREE.Vector3(speed,0,0);
+	
+	vel.applyAxisAngle (new THREE.Vector3(0,1,0), angle);
+	pos.add (vel.clone().multiplyScalar(dt));
+	
+	car.position.copy(pos);
+	car.rotation.y = angle;
+
+	// update
+	keyboard.update();
+	controls.update();
+	requestAnimationFrame(animate);
+	render();
+}
+
+function render() {
+
+	var WW = window.innerWidth;
+  var HH = window.innerHeight;
+
+  renderer.setScissorTest(true);
+  if (overlap) {
+    renderer.setViewport(0, 0, WW / 2, HH);
+    camera.aspect = WW / 2 / HH;
+    camera.updateProjectionMatrix();
+    renderer.setScissor(0, 0, WW / 2, HH);
+    renderer.clear();
+    renderer.render(scene, camera);
+    renderer.render(sceneHUD, cameraHUD);
+
+    renderer.setViewport(WW / 2, 0, WW / 2, HH);
+    renderer.setScissor(WW / 2, 0, WW / 2, HH);
+    renderer.clear();
+    renderer.render(scene, camera);
+    renderer.render(sceneHUD, cameraHUD);
+  } else {
+    renderer.setViewport(0, 0, WW,  HH);
+    camera.aspect = WW / HH;
+    camera.updateProjectionMatrix();
+    renderer.setScissor(0, 0, WW, HH);
+    renderer.clear();
+    renderer.render(scene, camera);
+    renderer.render(sceneHUD, cameraHUD);
+
+    renderer.setViewport(WW / 2, 0, WW / 3, HH / 3);
+    renderer.setScissor(WW / 2, 0, WW / 3, HH / 3);
+    renderer.clear();
+    //		renderer.render(scene, camera);
+    renderer.render(sceneHUD, cameraHUD);
+    renderer.render(scene, camera);
+
+  }
+  renderer.setScissorTest(false);
+}
+
+
+</script>
+</body>
+
+</html>
