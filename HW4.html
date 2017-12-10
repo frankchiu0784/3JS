@@ -44,7 +44,7 @@
 
 <script>
 
-var camera, scene, renderer;
+var camera, cameraGod, scene, renderer;
 var controls;
 var keyboard = new KeyboardState();
 var overlap = false;
@@ -97,7 +97,11 @@ function init() {
 	document.body.appendChild(container);
 
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
+	cameraGod = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
 	camera.position.y = 100;
+	cameraGod.position.y = 200;
+	cameraGod.lookAt(new THREE.Vector3(0,0,0));
+	
 
 	// scene
 	scene = new THREE.Scene();
@@ -274,9 +278,11 @@ function render() {
     renderer.render(sceneHUD, cameraHUD);
 
     renderer.setViewport(WW / 2, 0, WW / 2, HH);
+    cameraGod.aspect = WW / 2 / HH;
+    cameraGod.updateProjectionMatrix();
     renderer.setScissor(WW / 2, 0, WW / 2, HH);
     renderer.clear();
-    renderer.render(scene, camera);
+    renderer.render(scene, cameraGod);
     renderer.render(sceneHUD, cameraHUD);
   } else {
     renderer.setViewport(0, 0, WW,  HH);
@@ -287,12 +293,16 @@ function render() {
     renderer.render(scene, camera);
     renderer.render(sceneHUD, cameraHUD);
 
-    renderer.setViewport(WW / 2, 0, WW / 3, HH / 3);
-    renderer.setScissor(WW / 2, 0, WW / 3, HH / 3);
+    renderer.setViewport((WW / 3)*2, 0, WW / 3, HH / 3);
+
+    cameraGod.aspect = (WW / 3 / HH)*2;
+    cameraGod.updateProjectionMatrix();
+    renderer.setScissor((WW / 3)*2, 0, WW / 3, HH / 3);
+
     renderer.clear();
     //		renderer.render(scene, camera);
     renderer.render(sceneHUD, cameraHUD);
-    renderer.render(scene, camera);
+    renderer.render(scene, cameraGod);
 
   }
   renderer.setScissorTest(false);
