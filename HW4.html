@@ -254,8 +254,8 @@ function animate() {
 	car.position.copy(pos);
 	car.rotation.y = angle;
 	
-	camera3 = car.localToWorld(new THREE.Vector3(-20,10,0));
-	camera.position.copy(camera3);
+	camera = car.localToWorld(new THREE.Vector3(-20,10,0));
+	//camera.position.copy(camera3);
 	controls.target = car.position;
 
 	// update
