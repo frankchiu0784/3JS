@@ -100,7 +100,9 @@ function init() {
 	cameraGod = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
 	cameraGod.position.y = 200;
 	cameraGod.lookAt(new THREE.Vector3(0,0,0));
-	camera.position.set(-30,4,0);
+	camera=car.localToWorld(new.THREE.Vector3(-20,10,0));
+	camera.position.copy(camera);
+	controls.target = car.position;
 
 	// scene
 	scene = new THREE.Scene();
@@ -253,7 +255,7 @@ function animate() {
 	
 	car.position.copy(pos);
 	car.rotation.y = angle;
-	car.add(camera);
+	
 
 	// update
 	keyboard.update();
