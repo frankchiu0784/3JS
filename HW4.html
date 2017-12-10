@@ -96,13 +96,6 @@ function init() {
 	container = document.createElement('div');
 	document.body.appendChild(container);
 
-	//for renderer
-	renderer = new THREE.WebGLRenderer();
- 	renderer.setSize(window.innerWidth, window.innerHeight);
- 	renderer.setClearColor(0x888888);
- 	renderer.autoClear = false;
- 	document.body.appendChild(renderer.domElement);
-
 	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
 	cameraGod = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 20000);
 	cameraGod.position.y = 200;
@@ -121,9 +114,6 @@ function init() {
 	var directionalLight = new THREE.DirectionalLight(0xffffff);
 	directionalLight.position.set(0, 1, 1).normalize();
 	scene.add(directionalLight);
-
-	controls = new THREE.OrbitControls(camera, renderer.domElement);
-	controls.enableKeys = false;
 
 	// model
 	var onProgress = function(xhr) {
@@ -169,15 +159,21 @@ function init() {
 	});
 	
 	//control the car
-	pos = new THREE.Vector3(-80, 0, 50);
+	pos = new THREE.Vector3();
 	vel = new THREE.Vector3();
 	
 	//set obstacles
 	
 	
-	
+	//for renderer
+	renderer = new THREE.WebGLRenderer();
+ 	renderer.setSize(window.innerWidth, window.innerHeight);
+ 	renderer.setClearColor(0x888888);
+ 	renderer.autoClear = false;
+ 	document.body.appendChild(renderer.domElement);
 
-	
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+	controls.enableKeys = false;
 
 	window.addEventListener('resize', onWindowResize, false);
 }
@@ -283,7 +279,7 @@ function render() {
     renderer.clear();
     renderer.render(scene, camera);
     renderer.render(sceneHUD, cameraHUD);
- 
+
     renderer.setViewport(WW / 2, 0, WW / 2, HH);
     cameraGod.aspect = WW / 2 / HH;
     cameraGod.updateProjectionMatrix();
@@ -292,7 +288,7 @@ function render() {
     renderer.render(scene, cameraGod);
     renderer.render(sceneHUD, cameraHUD);
   
-  
+  renderer.setScissorTest(false);
 }
 
 
