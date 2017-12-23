@@ -120,14 +120,14 @@ function init() {
   //var spotLightHelper = new THREE.SpotLightHelper( light );
   //scene.add( spotLightHelper );
   
-  lamp = new THREE.SpotLight(0xFFF8E1,1.5,80,0.8);
+  lamp = new THREE.SpotLight(0xFFF8E1,2,80,0.8);
   lamp.position.set(-60, 120, -50);
   scene.add(lamp);
   //var spotLightHelper = new THREE.SpotLightHelper( lamp );
   //scene.add( spotLightHelper );
   
   
-  var gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
+  var gridXZ = new THREE.GridHelper(500, 50, 'red', 'white');
   scene.add(gridXZ);
 
   renderer = new THREE.WebGLRenderer();
